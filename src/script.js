@@ -27,12 +27,14 @@ var lives = 3;
 var score = 0;
 var livesText;
 var scoreText;
+var color = ["0xffffff", "0xff0000", "0x00ff00", "0x0000ff"];
+
 //Blocos que vão ser criados
 var brickInfo={
     width: 50,//largura
     height: 20,//comprimento
-    count: {row: 4,col: 12},//numero de linhas e colunas de blocos
-    offset: {top: 90,left: 60},//posição inicial entre blocos
+    count: {row: 4,col: 10},//numero de linhas e colunas de blocos
+    offset: {top: 90,left: 100},//posição inicial entre blocos
     padding: 10 //espaço entre blocos
 }
 
@@ -56,6 +58,8 @@ function create (){
     paddle.body.setSize(120, 16);
     // Impede que o paddle saia da tela do jogo
     paddle.setCollideWorldBounds(true);
+    //Tornar o paddle imovel
+    paddle.body.immovable = true;
 
     // Cria o sprite da bola
     ball = scene.physics.add.sprite(400, 300, 'ball');
@@ -74,10 +78,13 @@ function create (){
     // Define a gravidade da bola
     ball.setGravityY(0);
 
+    //Define a colisão da bola com o mundo
     ball.body.setCollideWorldBounds(true, 1, 1);
-   
+    //Define a colisão da bola com o paddle e invoca a função "bounceOffPaddle"
     scene.physics.add.collider(ball, paddle,bounceOffPaddle);
-
+    
+    //Chama a função para criar os blocos
+    createBricks();
     //Adiciona um listener para mover o paddle com o mouse ou touch
     scene.input.on('pointermove', function (pointer) 
     {
@@ -88,9 +95,43 @@ function create (){
 function update (){
 
 }
-
+//Função responsável por fazer a bola saltar no paddle quando colidem
 function bounceOffPaddle(){
     ball.setVelocity(ball.body.velocity.x, -ball.body.velocity.y);
+}
 
+//Função para criar os blocos
+function createBricks(){
+    //Escolher uma cor aleatoria para os blocos
+    var brickColor = Phaser.Utils.Array.GetRandom(color);
+    //Loop para criar os blocos
+    for( i = 0; i < brickInfo.count.col; i++){
+        for( x = 0; x < brickInfo.count.row; x++){
+            //Define a posição inicial do bloco
+            var brickX = (i * (brickInfo.width + brickInfo.padding)) + brickInfo.offset.left;
+            var brickY = (x * (brickInfo.height + brickInfo.padding)) + brickInfo.offset.top;
+            /*Criar o bloco, usamos a função "add.rectangle" para criar um retângulo, depois usamos a função "physics.add.existing" para adicionar o bloco ao jogo
+            e assim permitir que o bloco possa interagir com outros objetos*/
+            manage(scene.physics.add.existing(scene.add.rectangle(brickX, brickY, 50, 20, brickColor)));
+          
+        }
+    }
+}
 
+//Função para configurar um bloco
+function manage(brick){
+    //Tornar o bloco imóvel
+    brick.body.immovable = true;
+    //Adiciona-mos um collider entre a bola e o bloco, o que significa que quando a bola colidir com o bloco invoca a função "ballHitBrick"
+    scene.physics.add.collider(ball, brick,function(){
+        ballHitBrick(brick);
+    });
+}
+
+//Função para colisão da bola com o bloco
+function ballHitBrick(brick){
+    //Remove o bloco
+    brick.destroy();
+    //Incrementa o score
+    score++;
 }
