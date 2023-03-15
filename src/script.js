@@ -23,6 +23,7 @@ var game = new Phaser.Game(config);
 //Variaveis para guardar informações do jogo
 var ball;
 var paddle;
+var heart;
 var lives = 3;
 var score = 0;
 var livesText;
@@ -103,11 +104,11 @@ function create (){
     //adicionar o texto do score
     scoreText = scene.add.text(16,16, 'Score: ' + score, {fontSize: '32px', fill: '#FFF'});
     livesText = scene.add.text(630,16, 'Lives: ' + lives, {fontSize: '32px', fill: '#FFF'});
-    //adicionar as vidas do jogador
+  
+    //Atualizar os corações conforme o numero de vidas
     for(var i = 0; i < lives; i++){
-        scene.add.image(700 + (i * 30), 16, 'heart').setScale(0.1);
+        scene.add.image(700 + (i * 30), 30, 'heart').setScale(0.1);
     }
-
     //Chama a função para criar os blocos
     createBricks1();
 
@@ -121,10 +122,22 @@ function create (){
 }
 
 function update (){
+  
+
     if(lives === 0){
     // Exibir a mensagem "Game Over" em um objeto de texto da cena
-    var gameOverText = this.add.text(game.config.width / 2, game.config.height / 2, 'Game Over \n Your score was:' + score, { font: '32px Arial', fill: '#fff' });
+    var gameOverText = this.add.text(game.config.width / 2, game.config.height / 2, 'Game Over \n Your score was:' + score, { font: '32px Arial', fill: '#FFFFFF' });
     gameOverText.setOrigin(0.5);
+    
+    // Adicionar um botão de reinício
+    var restartButton = this.add.text(game.config.width / 2, game.config.height / 2 + 150, 'Jogar Novamente!', { font: '24px Arial', fill: '#FFFFFF', 
+    stroke: '#FFFFFF',  backgroundColor: '#8878C3' });
+    restartButton.setOrigin(0.5);
+    
+    restartButton.setInteractive(); // Habilita a interatividade do botão
+    restartButton.on('pointerup', function() {
+        location.reload();
+    });
     
     // Pausar o jogo
     this.physics.pause();
@@ -235,4 +248,5 @@ function ballHitBrick(brick){
 function hitLava(){
     lives--;
     livesText.setText('Lives: ' + lives);
+
 }
