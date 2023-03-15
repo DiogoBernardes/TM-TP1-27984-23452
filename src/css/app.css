@@ -1,0 +1,46 @@
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #000000;
+  color: #ffffff;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 20px;
+  text-align: center;
+}
+
+#menu {
+  background-image: url('/Breakout/assets/images/arcade-background.jpg');
+  background-size: cover;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+button {
+  background-color: #000000;
+  color: #ffffff;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 20px;
+  padding: 15px 30px;
+  border: 5px solid #ffffff;
+  text-transform: uppercase;
+  margin: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+button:hover {
+  background-color: #ffffff;
+  color: #000000;
+  border: 5px solid #000000;
+  box-shadow: 0px 0px 10px 5px #ffffff;
+}
+
+h1 {
+  font-size: 70px;
+  text-shadow: 0px 0px 10px #c03a3a;
+  color: #d4a540;
+  margin-top: 50px;
+}
