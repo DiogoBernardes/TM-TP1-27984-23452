@@ -2,7 +2,7 @@ var config = { /*Criar a variável de configuração do jogo*/
     type: Phaser.AUTO, //tipo de renderização
     parent: 'game', //id do elemento html que vai conter o jogo
     width: 800,
-    height: 600,
+    height: 500,
     //Define a cena que será utilizada no jogo, tais como as funções de preload, criação e atualização de cena
     scene: {
         preload: preload,
@@ -27,7 +27,9 @@ var lives = 3;
 var score = 0;
 var livesText;
 var scoreText;
+var count= 0;
 var color = ["0xffffff", "0xff0000", "0x00ff00", "0x0000ff"];
+
 
 //Blocos que vão ser criados
 var brickInfo={
@@ -35,7 +37,7 @@ var brickInfo={
     height: 20,//comprimento
     count: {row: 4,col: 10},//numero de linhas e colunas de blocos
     offset: {top: 90,left: 100},//posição inicial entre blocos
-    padding: 10 //espaço entre blocos
+    padding: 9//espaço entre blocos
 }
 
 var scene;
@@ -44,47 +46,73 @@ var scene;
 function preload() {
     this.load.image('paddle', 'assets/images/paddle.png');
     this.load.image('ball', 'assets/images/ball.png');
+    this.load.image('background', 'assets/images/background.png');
+    this.load.image('heart', 'assets/images/heart.png');
+
 }
 
 //Função para criar os elementos do jogo
 function create (){
     scene = this;
+    //Adiciona o background ao jogo
+    scene.add.image(400, 245, 'background');
+    //Aumentar tamanho background
+    scene.scale.setGameSize(800, 490);
 
+    
+
+    /* Código paddle */
     // Cria o sprite do paddle
-    paddle = scene.physics.add.sprite(400, 550, 'paddle');
+    paddle = scene.physics.add.sprite(400, 450, 'paddle');
     // Define o tamanho do sprite do paddle
     paddle.setScale(0.9);
     // Define o tamanho do corpo de colisão do paddle
-    paddle.body.setSize(120, 16);
+    paddle.body.setSize(150, 40);
     // Impede que o paddle saia da tela do jogo
     paddle.setCollideWorldBounds(true);
     //Tornar o paddle imovel
     paddle.body.immovable = true;
 
+    /* Código bola */
     // Cria o sprite da bola
     ball = scene.physics.add.sprite(400, 300, 'ball');
     // Define o tamanho do sprite da bola
     ball.setScale(0.04);
     // Define o tamanho do corpo de colisão da bola
-    ball.body.setSize(16, 16);
+    ball.body.setSize(120, 120);
     // Impede que a bola saia da tela do jogo
     ball.setCollideWorldBounds(true);
     // Define a velocidade da bola
-    ball.setVelocity(300, 300);
-    // Define a velocidade máxima da bola
-    ball.body.maxVelocity.set(200);
-    // Define a elasticidade da bola
-    //ball.setBounce(1);
-    // Define a gravidade da bola
-    ball.setGravityY(0);
 
+    ball.setVelocity(300, 300);
     //Define a colisão da bola com o mundo
-    ball.body.setCollideWorldBounds(true, 1, 1);
+    ball.body.setCollideWorldBounds = true;
+    //Definimos o quao alto a bola ira saltar na vertical quanto atingir o paddle, onde o 1 significa que irá saltar com a mesma força que atingiu a superficie
+    ball.body.bounce.y = 1;
+    //Faz o mesmo, mas para a horizontal
+    ball.body.bounce.x = 1;
     //Define a colisão da bola com o paddle e invoca a função "bounceOffPaddle"
     scene.physics.add.collider(ball, paddle,bounceOffPaddle);
     
+
+    lava = scene.add.rectangle(0,500, 200000, 10, 0x000000);
+    scene.physics.add.existing(lava);
+    lava.body.immovable = true;
+    scene.physics.add.collider(ball, lava, 0 , hitLava);
+
+    //adicionar o texto do score
+    scoreText = scene.add.text(16,16, 'Score: ' + score, {fontSize: '32px', fill: '#FFF'});
+    livesText = scene.add.text(630,16, 'Lives: ' + lives, {fontSize: '32px', fill: '#FFF'});
+    //adicionar as vidas do jogador
+    for(var i = 0; i < lives; i++){
+        scene.add.image(700 + (i * 30), 16, 'heart').setScale(0.1);
+    }
+
     //Chama a função para criar os blocos
-    createBricks();
+    createBricks1();
+
+    
+
     //Adiciona um listener para mover o paddle com o mouse ou touch
     scene.input.on('pointermove', function (pointer) 
     {
@@ -93,45 +121,118 @@ function create (){
 }
 
 function update (){
-
+    if(lives === 0){
+    // Exibir a mensagem "Game Over" em um objeto de texto da cena
+    var gameOverText = this.add.text(game.config.width / 2, game.config.height / 2, 'Game Over \n Your score was:' + score, { font: '32px Arial', fill: '#fff' });
+    gameOverText.setOrigin(0.5);
+    
+    // Pausar o jogo
+    this.physics.pause();
+    
+    // Desabilitar as interações do jogador com o jogo
+    this.input.mouse.disableContextMenu();
+    this.input.keyboard.enabled = false;
+    }
+    if (score === brickInfo.count.row * brickInfo.count.col){
+        createBricks2();
+    }
+    else if(score === brickInfo.count.row * brickInfo.count.col + 47){
+        createBricks3();
+    }
 }
+
 //Função responsável por fazer a bola saltar no paddle quando colidem
 function bounceOffPaddle(){
-    ball.setVelocity(ball.body.velocity.x, -ball.body.velocity.y);
+    //Define a velocidade da bola
+    ball.setVelocityY(-300);
+    //Define a velocidade da bola
+    ball.setVelocityX(Phaser.Math.Between(-350, 350));
 }
 
 //Função para criar os blocos
-function createBricks(){
-    //Escolher uma cor aleatoria para os blocos
-    var brickColor = Phaser.Utils.Array.GetRandom(color);
-    //Loop para criar os blocos
-    for( i = 0; i < brickInfo.count.col; i++){
-        for( x = 0; x < brickInfo.count.row; x++){
-            //Define a posição inicial do bloco
-            var brickX = (i * (brickInfo.width + brickInfo.padding)) + brickInfo.offset.left;
-            var brickY = (x * (brickInfo.height + brickInfo.padding)) + brickInfo.offset.top;
-            /*Criar o bloco, usamos a função "add.rectangle" para criar um retângulo, depois usamos a função "physics.add.existing" para adicionar o bloco ao jogo
-            e assim permitir que o bloco possa interagir com outros objetos*/
-            manage(scene.physics.add.existing(scene.add.rectangle(brickX, brickY, 50, 20, brickColor)));
-          
-        }
+function createBricks1(){
+  // Loop através da matriz de padrão de blocos
+  for (var i = 0; i < brickInfo.count.col; i++) {
+    for (var j = 0; j < brickInfo.count.row ; j++) {
+      // Se o valor na matriz for 1, cria um bloco
+        var brickX = (i * (brickInfo.width + brickInfo.padding)) + brickInfo.offset.left;
+        var brickY = (j * (brickInfo.height + brickInfo.padding)) + brickInfo.offset.top;
+        var brickColor = Phaser.Utils.Array.GetRandom(color);
+        manage(scene.physics.add.existing(scene.add.rectangle(brickX, brickY, 50, 20, brickColor)));
     }
+  }
 }
+function createBricks2(){
+    // Define uma matriz de 2D para armazenar o padrão de blocos
+    var brickPattern = [
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+        [0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+        [0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0],
+        [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 1, , 0, 0, 0, 0]
+      ];
+   
+   // Loop através da matriz de padrão de blocos
+   for (var i = 0; i < brickPattern.length; i++) {
+     for (var j = 0; j < brickPattern[i].length; j++) {
+       // Se o valor na matriz for 1, cria um bloco
+       if (brickPattern[i][j] == 1) {
+         var brickX = (j * (brickInfo.width + brickInfo.padding)) + brickInfo.offset.left;
+         var brickY = (i * (brickInfo.height + brickInfo.padding)) + brickInfo.offset.top;
+         var brickColor = Phaser.Utils.Array.GetRandom(color);
+         manage(scene.physics.add.existing(scene.add.rectangle(brickX, brickY, 50, 20, brickColor)));
+       }
+     }
+   }
+ }
+ function createBricks3(){
+    // Define uma matriz de 2D para armazenar o padrão de blocos
+    var brickPattern = [
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+        [1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1],
+        [1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+        [1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1],
+        [1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+      ];
+   // Loop através da matriz de padrão de blocos
+   for (var i = 0; i < brickPattern.length; i++) {
+     for (var j = 0; j < brickPattern[i].length; j++) {
+       // Se o valor na matriz for 1, cria um bloco
+       if (brickPattern[i][j] == 1) {
+         var brickX = (j * (brickInfo.width + brickInfo.padding)) + brickInfo.offset.left;
+         var brickY = (i * (brickInfo.height + brickInfo.padding)) + brickInfo.offset.top;
+         var brickColor = Phaser.Utils.Array.GetRandom(color);
+         manage(scene.physics.add.existing(scene.add.rectangle(brickX, brickY, 50, 20, brickColor)));
+       }
+     }
+   }
+ }
 
 //Função para configurar um bloco
 function manage(brick){
     //Tornar o bloco imóvel
     brick.body.immovable = true;
     //Adiciona-mos um collider entre a bola e o bloco, o que significa que quando a bola colidir com o bloco invoca a função "ballHitBrick"
-    scene.physics.add.collider(ball, brick,function(){
+    scene.physics.add.collider(ball, brick, function(){
         ballHitBrick(brick);
     });
 }
 
 //Função para colisão da bola com o bloco
 function ballHitBrick(brick){
+
     //Remove o bloco
     brick.destroy();
     //Incrementa o score
     score++;
+    scoreText.setText('Score: ' + score);
+}
+
+function hitLava(){
+    lives--;
+    livesText.setText('Lives: ' + lives);
 }
