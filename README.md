@@ -12,6 +12,7 @@ This project is being developed within the scope of the Discipline of Multimedia
 
 ![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)
 - [@DiogoBernardes](https://github.com/DiogoBernardes)
+- [@RicardoConde] (https://github.com/C0nD318)
 
 ![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)
 - [@DiogoBernardes](https://www.linkedin.com/in/diogo-bernardes-b2439a206/)
