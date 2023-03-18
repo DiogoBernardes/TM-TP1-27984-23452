@@ -27,6 +27,7 @@ var game = new Phaser.Game(config);
 var ball;
 var paddle;
 var heart;
+var bonus;
 var lives = 3;
 var score = 0;
 var livesText;
@@ -36,6 +37,7 @@ var level = 1;
 var bonusCount = 0; // variável para contar a quantidade de bônus gerados
 var bonusGoodActive = false;
 var bonusBadActive = false;
+var extraBallActive = false;
 
 //Blocos que vão ser criados
 var brickInfo = {
@@ -54,8 +56,7 @@ function preload() {
   this.load.image("ball", "assets/images/ball.png");
   this.load.image("background", "assets/images/background.png");
   this.load.image("heart", "assets/images/heart.png");
-  this.load.image("bonus", "assets/images/laranja.jpg");
-  this.load.image("bonusNegative", "assets/images/maça.jpg");
+  this.load.image("bonus", "assets/images/laranja.png");
 }
 
 //Função para criar os elementos do jogo
@@ -206,6 +207,7 @@ function createBricks1() {
   }
 }
 function createBricks2() {
+  bonusCount = 0;
   var rows = 4 * level;
   var cols = 10 * level;
   var matrix = [];
@@ -237,7 +239,7 @@ function createBricks2() {
       }
     }
   }
-  ball.setVelocityY(375, 375);
+  ball.setVelocityY(500, 500);
 }
 function createBricks3() {
   var rows = 4 * level;
@@ -289,12 +291,11 @@ function ballHitBrick(brick) {
   } else if (brick.fillColor == "0xffffff" && level === 2) {
     ball.setVelocity(800, 800);
   }
-  //Remove o bloco
   brick.destroy();
-  //Incrementa o score
   score++;
   scoreText.setText("Score: " + score);
-  createBonus(brick.x, brick.y);
+
+  callBonus = Math.random() < 0.2 ? createBonus(brick.x, brick.y) : null;
 }
 
 function hitLava() {
@@ -303,23 +304,13 @@ function hitLava() {
 }
 
 function createBonus(x, y) {
-  var bonus;
-  var extraBall;
-  var maxBonusPerLevel = 3; // quantidade máxima de bônus por nível
-  if (Math.random() < 0.5) {
-    bonusType = "positive";
-  } else {
-    bonusType = "negative";
-  }
+  var maxBonusPerLevel = 5; // quantidade máxima de bônus por nível
+  bonusType = Math.random() < 0.5 ? "positive" : "negative";
 
   // verifica se o limite máximo de bônus por nível não foi atingido
   if (bonusCount < maxBonusPerLevel) {
-    bonus = scene.physics.add.sprite(
-      x,
-      y,
-      "bonus" + bonusType.charAt(0).toUpperCase() + bonusType.slice(1)
-    );
-    bonus.setScale(0.2);
+    bonus = scene.physics.add.sprite(x, y, "bonus");
+    bonus.setScale(0.05);
     bonus.setVelocityY(150);
 
     // adiciona um collider entre o paddle e o bonus
@@ -328,43 +319,64 @@ function createBonus(x, y) {
       bonus.disableBody(true, true);
 
       if (bonusType === "positive") {
-        bonusGoodActive = true; // marca que o bônus bom está ativo
-        var rand_bonus = Phaser.Math.RND.pick([0, 1]); // escolhe aleatoriamente entre aumentar o tamanho do paddle ou receber vida extra
-        if (rand_bonus === 0) {
-          paddle.setScale(1.5); // aumenta o tamanho do paddle em 50%
-          scene.time.delayedCall(
-            10000,
-            function () {
-              paddle.setScale(1); // retorna o tamanho do paddle ao normal
-              bonusGoodActive = false; // marca que o bônus bom não está mais ativo
-            },
-            [],
-            this
-          );
-        } else {
-          // adiciona uma vida extra para o jogador
-          lives++;
-          livesText.setText("Lives: " + lives);
-        }
+        positiveBonus();
       } else if (bonusType === "negative") {
-        bonusBadActive = true; // marca que o bônus ruim está ativo
-        // Adiciona uma nova bola no jogo
-        extraBall = scene.physics.add.sprite(500, 150, "ball");
-        extraBall.setVelocityY(300);
-        extraBall.setVelocityX(Phaser.Math.RND.integerInRange(-200, 200));
-        extraBall.setBounce(1, 1);
-        extraBall.setScale(0.04);
-        extraBall.setCollideWorldBounds(true);
-        scene.physics.add.collider(extraBall, paddle, bounceOffPaddle);
-        scene.physics.add.collider(extraBall, lava, 0, hitLava);
-        // Remove a bola adicional após 5 segundos
-        setTimeout(function () {
-          extraBall.disableBody(true, true);
-        }, 5000);
+        negativeBonus();
       }
     });
-
-    // incrementa o contador de bônus
     bonusCount++;
+  }
+}
+
+function positiveBonus() {
+  bonusGoodActive = true; // marca que o bônus bom está ativo
+  var rand_bonus = Phaser.Math.RND.pick([0, 1]); // escolhe aleatoriamente entre aumentar o tamanho do paddle ou receber vida extra
+  if (rand_bonus === 0) {
+    paddle.setScale(1.5); // aumenta o tamanho do paddle em 50%
+    scene.time.delayedCall(
+      10000,
+      function () {
+        paddle.setScale(1); // retorna o tamanho do paddle ao normal
+        bonusGoodActive = false; // marca que o bônus bom não está mais ativo
+      },
+      [],
+      this
+    );
+  } else {
+    // adiciona uma vida extra para o jogador
+    lives++;
+    livesText.setText("Lives: " + lives);
+  }
+}
+
+function negativeBonus() {
+  if (!extraBallActive) {
+    bonusBadActive = true; // marca que o bônus ruim está ativo
+    extraBallActive = true;
+    // Adiciona uma nova bola no jogo
+    extraBall = scene.physics.add.sprite(500, 150, "ball");
+    extraBall.setVelocityY(300);
+    extraBall.setVelocityX(Phaser.Math.RND.integerInRange(-200, 200));
+    extraBall.setBounce(1, 1);
+    extraBall.setScale(0.04);
+    extraBall.setCollideWorldBounds(true);
+    scene.physics.add.collider(extraBall, paddle, bounceOffPaddle);
+    scene.physics.add.collider(extraBall, lava, 0, hitLava);
+    // Remove a bola adicional após 5 segundos
+    setTimeout(function () {
+      extraBall.disableBody(true, true);
+      extraBallActive = false;
+    }, 5000);
+  } else {
+    paddle.setScale(0.5); // diminui o tamanho do paddle em 50%
+    scene.time.delayedCall(
+      10000,
+      function () {
+        paddle.setScale(1); // retorna o tamanho do paddle ao normal
+        bonusGoodActive = false; // marca que o bônus bom não está mais ativo
+      },
+      [],
+      this
+    );
   }
 }
