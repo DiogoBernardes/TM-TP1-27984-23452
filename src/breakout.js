@@ -1,29 +1,26 @@
 var config = {
-  /*Criar a variável de configuração do jogo*/
-  type: Phaser.AUTO, //tipo de renderização
-  parent: "game", //id do elemento html que vai conter o jogo
+  type: Phaser.AUTO, 
+  parent: "game",
   width: 800,
   heigth: 640,
   scale: {
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
-  //Define a cena que será utilizada no jogo, tais como as funções de preload, criação e atualização de cena
   scene: {
     preload: preload,
     create: create,
     update: update,
   },
-  /*Define as configurações de física do jogo*/
+
   physics: {
-    default: "arcade", //Tipo de fisica que será utilizado
+    default: "arcade", 
     arcade: {
-      gravity: false, //Gravidade do jogo a 0, pois não precisamos de gravidade
+      gravity: false,
     },
   },
 };
-//Cria o jogo com as configurações definidas
 var game = new Phaser.Game(config);
-//Variaveis para guardar informações do jogo
+
 var ball;
 var paddle;
 var heart;
@@ -34,7 +31,7 @@ var livesText;
 var scoreText;
 var color = ["0xffffff", "0xff0000", "0x00ff00", "0x0000ff"];
 var level = 1;
-var bonusCount = 0; // variável para contar a quantidade de bônus gerados
+var bonusCount = 0;
 var bonusGoodActive = false;
 var bonusBadActive = false;
 var extraBallActive = false;
@@ -48,8 +45,6 @@ var brickInfo = {
   padding: 10 * level, //espaço entre blocos
 };
 
-var scene;
-
 //Função para pré carregar recursos do jogo
 function preload() {
   this.load.image("paddle", "assets/images/paddle.png");
@@ -59,35 +54,24 @@ function preload() {
   this.load.image("bonus", "assets/images/laranja.png");
 }
 
-//Função para criar os elementos do jogo
 function create() {
   scene = this;
-  //Adiciona o background ao jogo
   scene.add.image(400, 245, "background");
-  //Aumentar tamanho background
   scene.scale.setGameSize(800, 490);
 
   /* Código paddle */
-  // Cria o sprite do paddle
   paddle = scene.physics.add.sprite(400, 450, "paddle");
-  // Define o tamanho do sprite do paddle
   paddle.setScale(0.9);
-  // Define o tamanho do corpo de colisão do paddle
   paddle.body.setSize(150, 40);
-  // Impede que o paddle saia da tela do jogo
   paddle.setCollideWorldBounds(true);
-  //Tornar o paddle imovel
   paddle.body.immovable = true;
 
   /* Código bola */
-  // Cria o sprite da bola
   ball = scene.physics.add.sprite(400, 300, "ball");
-  // Define o tamanho do sprite da bola
   ball.setScale(0.04);
-  // Define o tamanho do corpo de colisão da bola
   ball.body.setSize(120, 120);
-  // Impede que a bola saia da tela do jogo
   ball.setCollideWorldBounds(true);
+  ballGroup = this.physics.add.group(); 
 
   // Define a velocidade da bola
   function startBall() {
@@ -96,13 +80,11 @@ function create() {
   // Define um delay para a bola começar a se mover
   setTimeout(startBall, 500);
 
-  //Define a colisão da bola com o mundo
+ 
   ball.body.setCollideWorldBounds = true;
-  //Definimos o quao alto a bola ira saltar na vertical quanto atingir o paddle, onde o 1 significa que irá saltar com a mesma força que atingiu a superficie
-  ball.body.bounce.y = 1;
-  //Faz o mesmo, mas para a horizontal
+  ball.body.bounce.y = 1;  //Salto bola Vertical e Horizontal
   ball.body.bounce.x = 1;
-  //Define a colisão da bola com o paddle e invoca a função "bounceOffPaddle"
+
   scene.physics.add.collider(ball, paddle, bounceOffPaddle);
 
   //Defina a variavel lava como um retangulo que ocupa toda a largura da tela e tem 10px de altura e de faz o colidder com a bola
@@ -120,15 +102,16 @@ function create() {
     fontSize: "32px",
     fill: "#FFF",
   });
-
   //Atualizar os corações conforme o numero de vidas
   for (var i = 0; i < lives; i++) {
     scene.add.image(700 + i * 30, 30, "heart").setScale(0.1);
   }
+
   //Chama a função para criar os blocos
   createBricks1();
+  godMode.call(this);
 
-  //Adiciona um listener para mover o paddle com o mouse ou touch
+  //Listener para mover o paddle com o mouse ou touch
   scene.input.on("pointermove", function (pointer) {
     paddle.setPosition(pointer.x, paddle.y);
   });
@@ -136,7 +119,6 @@ function create() {
 
 function update() {
   if (lives === 0) {
-    // Exibir a mensagem "Game Over" em um objeto de texto da cena
     var gameOverText = this.add.text(
       game.config.width / 2,
       game.config.height / 3,
@@ -145,7 +127,6 @@ function update() {
     );
     gameOverText.setOrigin(0.5);
 
-    // Adicionar um botão de reinício
     var restartButton = this.add.text(
       game.config.width / 2,
       game.config.height / 3 + 150,
@@ -165,10 +146,7 @@ function update() {
       window.location.href = "menu.html";
     });
 
-    // Pausar o jogo
     this.physics.pause();
-
-    // Desabilitar as interações do jogador com o jogo
     this.input.mouse.disableContextMenu();
     this.input.keyboard.enabled = false;
   }
@@ -181,9 +159,7 @@ function update() {
 
 //Função responsável por fazer a bola saltar no paddle quando colidem
 function bounceOffPaddle() {
-  //Define a velocidade da bola
   ball.setVelocityY(-300);
-  //Define a velocidade da bola
   ball.setVelocityX(Phaser.Math.Between(-350, 350));
 }
 
@@ -276,9 +252,7 @@ function createBricks3() {
 
 //Função para configurar um bloco
 function manage(brick) {
-  //Tornar o bloco imóvel
   brick.body.immovable = true;
-  //Adiciona-mos um collider entre a bola e o bloco, o que significa que quando a bola colidir com o bloco invoca a função "ballHitBrick"
   scene.physics.add.collider(ball, brick, function () {
     ballHitBrick(brick);
   });
@@ -304,18 +278,15 @@ function hitLava() {
 }
 
 function createBonus(x, y) {
-  var maxBonusPerLevel = 5; // quantidade máxima de bônus por nível
+  var maxBonusPerLevel = 5;
   bonusType = Math.random() < 0.5 ? "positive" : "negative";
 
-  // verifica se o limite máximo de bônus por nível não foi atingido
   if (bonusCount < maxBonusPerLevel) {
     bonus = scene.physics.add.sprite(x, y, "bonus");
     bonus.setScale(0.05);
     bonus.setVelocityY(150);
 
-    // adiciona um collider entre o paddle e o bonus
     scene.physics.add.collider(paddle, bonus, function (paddle, bonus) {
-      // Define aqui o comportamento do bônus
       bonus.disableBody(true, true);
 
       if (bonusType === "positive") {
@@ -329,10 +300,10 @@ function createBonus(x, y) {
 }
 
 function positiveBonus() {
-  bonusGoodActive = true; // marca que o bônus bom está ativo
+  bonusGoodActive = true;
   var rand_bonus = Phaser.Math.RND.pick([0, 1]); // escolhe aleatoriamente entre aumentar o tamanho do paddle ou receber vida extra
   if (rand_bonus === 0) {
-    paddle.setScale(1.5); // aumenta o tamanho do paddle em 50%
+    paddle.setScale(1.5); 
     scene.time.delayedCall(
       10000,
       function () {
@@ -343,7 +314,6 @@ function positiveBonus() {
       this
     );
   } else {
-    // adiciona uma vida extra para o jogador
     lives++;
     livesText.setText("Lives: " + lives);
   }
@@ -351,9 +321,9 @@ function positiveBonus() {
 
 function negativeBonus() {
   if (!extraBallActive) {
-    bonusBadActive = true; // marca que o bônus ruim está ativo
+    bonusBadActive = true;
     extraBallActive = true;
-    // Adiciona uma nova bola no jogo
+
     extraBall = scene.physics.add.sprite(500, 150, "ball");
     extraBall.setVelocityY(300);
     extraBall.setVelocityX(Phaser.Math.RND.integerInRange(-200, 200));
@@ -380,3 +350,27 @@ function negativeBonus() {
     );
   }
 }
+
+function godMode() {
+  // Defina as variáveis iniciais
+  var maxLives = 3;
+
+  // Adicione um listener para a tecla "N"
+  this.input.keyboard.on('keydown-N', function () {
+    paddle.setScale(2.5); // aumenta o tamanho do paddle em 2 vezes
+  });
+
+  // Adicione um listener para a tecla "L"
+  this.input.keyboard.on('keydown-L', function () {
+    lives += 1; // aumenta o número de vidas em 1
+    livesText.setText('Lives: ' + lives); // atualiza o texto das vidas
+  });
+
+    // Adicione um listener para a tecla "B"
+    this.input.keyboard.on('keydown-B', function () {
+      paddle.setScale(1); // volta o tamanho do paddle ao normal
+      lives = maxLives; // volta o número de vidas para 3
+      livesText.setText('Lives: ' + lives); // atualiza o texto das vidas
+    });
+}
+
