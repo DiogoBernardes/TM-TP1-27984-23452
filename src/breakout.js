@@ -1,5 +1,5 @@
 var config = {
-  type: Phaser.AUTO, 
+  type: Phaser.AUTO,
   parent: "game",
   width: 800,
   heigth: 640,
@@ -13,7 +13,7 @@ var config = {
   },
 
   physics: {
-    default: "arcade", 
+    default: "arcade",
     arcade: {
       gravity: false,
     },
@@ -51,7 +51,8 @@ function preload() {
   this.load.image("ball", "assets/images/ball.png");
   this.load.image("background", "assets/images/background.png");
   this.load.image("heart", "assets/images/heart.png");
-  this.load.image("bonus", "assets/images/laranja.png");
+  this.load.image("bonusPositive", "assets/images/laranja.png");
+  this.load.image("bonusNegative", "assets/images/maça.png");
 }
 
 function create() {
@@ -71,20 +72,15 @@ function create() {
   ball.setScale(0.04);
   ball.body.setSize(120, 120);
   ball.setCollideWorldBounds(true);
-  ballGroup = this.physics.add.group(); 
-
-  // Define a velocidade da bola
+  ballGroup = this.physics.add.group();
+  ball.body.setCollideWorldBounds = true;
+  ball.body.bounce.y = 1; //Salto bola Vertical e Horizontal
+  ball.body.bounce.x = 1;
   function startBall() {
     ball.setVelocity(300, 300);
   }
-  // Define um delay para a bola começar a se mover
+  //delay para a bola começar
   setTimeout(startBall, 500);
-
- 
-  ball.body.setCollideWorldBounds = true;
-  ball.body.bounce.y = 1;  //Salto bola Vertical e Horizontal
-  ball.body.bounce.x = 1;
-
   scene.physics.add.collider(ball, paddle, bounceOffPaddle);
 
   //Defina a variavel lava como um retangulo que ocupa toda a largura da tela e tem 10px de altura e de faz o colidder com a bola
@@ -93,28 +89,11 @@ function create() {
   lava.body.immovable = true;
   scene.physics.add.collider(ball, lava, 0, hitLava);
 
-  //adicionar o texto do score e vidas
-  scoreText = scene.add.text(16, 16, "Score: " + score, {
-    fontSize: "32px",
-    fill: "#FFF",
-  });
-  livesText = scene.add.text(630, 16, "Lives: " + lives, {
-    fontSize: "32px",
-    fill: "#FFF",
-  });
-  //Atualizar os corações conforme o numero de vidas
-  for (var i = 0; i < lives; i++) {
-    scene.add.image(700 + i * 30, 30, "heart").setScale(0.1);
-  }
-
-  //Chama a função para criar os blocos
+  //Chamar funções
+  informations();
   createBricks1();
   godMode.call(this);
-
-  //Listener para mover o paddle com o mouse ou touch
-  scene.input.on("pointermove", function (pointer) {
-    paddle.setPosition(pointer.x, paddle.y);
-  });
+  setupInput();
 }
 
 function update() {
@@ -272,6 +251,18 @@ function ballHitBrick(brick) {
   callBonus = Math.random() < 0.2 ? createBonus(brick.x, brick.y) : null;
 }
 
+function informations() {
+  //adicionar o texto do score e vidas
+  scoreText = scene.add.text(16, 16, "Score: " + score, {
+    fontSize: "32px",
+    fill: "#FFF",
+  });
+  livesText = scene.add.text(630, 16, "Lives: " + lives, {
+    fontSize: "32px",
+    fill: "#FFF",
+  });
+}
+
 function hitLava() {
   lives--;
   livesText.setText("Lives: " + lives);
@@ -283,6 +274,11 @@ function createBonus(x, y) {
 
   if (bonusCount < maxBonusPerLevel) {
     bonus = scene.physics.add.sprite(x, y, "bonus");
+    if (bonusType === "positive") {
+      bonus.setTexture("bonusPositive");
+    } else if (bonusType === "negative") {
+      bonus.setTexture("bonusNegative");
+    }
     bonus.setScale(0.05);
     bonus.setVelocityY(150);
 
@@ -303,7 +299,7 @@ function positiveBonus() {
   bonusGoodActive = true;
   var rand_bonus = Phaser.Math.RND.pick([0, 1]); // escolhe aleatoriamente entre aumentar o tamanho do paddle ou receber vida extra
   if (rand_bonus === 0) {
-    paddle.setScale(1.5); 
+    paddle.setScale(1.5);
     scene.time.delayedCall(
       10000,
       function () {
@@ -356,21 +352,53 @@ function godMode() {
   var maxLives = 3;
 
   // Adicione um listener para a tecla "N"
-  this.input.keyboard.on('keydown-N', function () {
+  this.input.keyboard.on("keydown-N", function () {
     paddle.setScale(2.5); // aumenta o tamanho do paddle em 2 vezes
   });
 
   // Adicione um listener para a tecla "L"
-  this.input.keyboard.on('keydown-L', function () {
+  this.input.keyboard.on("keydown-L", function () {
     lives += 1; // aumenta o número de vidas em 1
-    livesText.setText('Lives: ' + lives); // atualiza o texto das vidas
+    livesText.setText("Lives: " + lives); // atualiza o texto das vidas
   });
 
-    // Adicione um listener para a tecla "B"
-    this.input.keyboard.on('keydown-B', function () {
-      paddle.setScale(1); // volta o tamanho do paddle ao normal
-      lives = maxLives; // volta o número de vidas para 3
-      livesText.setText('Lives: ' + lives); // atualiza o texto das vidas
-    });
+  // Adicione um listener para a tecla "B"
+  this.input.keyboard.on("keydown-B", function () {
+    paddle.setScale(1); // volta o tamanho do paddle ao normal
+    lives = maxLives; // volta o número de vidas para 3
+    livesText.setText("Lives: " + lives); // atualiza o texto das vidas
+  });
+
+  // Adicione um listener para a tecla "B"
+  this.input.keyboard.on("keydown-Z", function () {
+    createBricks3();
+  });
 }
 
+function handleInput(event) {
+  if (event.type === "keydown") {
+    if (event.code === "ArrowLeft") {
+      paddle.setVelocityX(-300);
+    } else if (event.code === "ArrowRight") {
+      paddle.setVelocityX(300);
+    }
+  } else if (event.type === "mousemove") {
+    scene.input.on("pointermove", function (pointer) {
+      paddle.setPosition(pointer.x, paddle.y);
+    });
+  }
+
+  if (event.type === "keyup") {
+    if (event.code === "ArrowLeft" && paddle.body.velocity.x < 0) {
+      paddle.setVelocityX(0);
+    } else if (event.code === "ArrowRight" && paddle.body.velocity.x > 0) {
+      paddle.setVelocityX(0);
+    }
+  }
+}
+
+// cria os ouvintes de eventos para teclado e mouse
+function setupInput() {
+  window.addEventListener("keydown", handleInput);
+  window.addEventListener("mousemove", handleInput);
+}

@@ -6,16 +6,21 @@ body {
   font-family: 'Press Start 2P', cursive;
   font-size: 20px;
   text-align: center;
+  width: 800px; 
+  height: 640px;
+  margin: auto; /* centraliza horizontalmente */
+  padding-top: 10%;
 }
 
+
 #menu {
-  background-image: url('/Breakout/assets/images/arcade-background.jpg');
-  background-size: cover;
-  height: 100vh;
+  background-image: url('/assets/images/background-menu.jpg');
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  height:80%;
+  width: 100%;
 }
 
 button {
