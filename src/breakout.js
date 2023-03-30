@@ -25,6 +25,10 @@ var ball;
 var paddle;
 var heart;
 var bonus;
+var warning;
+var pBuff;
+var sound;
+var life;
 var lives = 3;
 var score = 0;
 var livesText;
@@ -35,12 +39,11 @@ var bonusCount = 0;
 var bonusGoodActive = false;
 var bonusBadActive = false;
 var extraBallActive = false;
-
 //Blocos que vão ser criados
 var brickInfo = {
   width: 50 / level, //largura
   height: 20 / level, //comprimento
-  count: { row: 4 * level, col: 10 * level }, //numero de linhas e colunas de blocos
+  count: { row: 4 * level, col: 10 * level }, //numero de li  nhas e colunas de blocos
   offset: { top: 90, left: 100 }, //posição inicial entre blocos
   padding: 10 * level, //espaço entre blocos
 };
@@ -53,6 +56,10 @@ function preload() {
   this.load.image("heart", "assets/images/heart.png");
   this.load.image("bonusPositive", "assets/images/laranja.png");
   this.load.image("bonusNegative", "assets/images/maça.png");
+  this.load.audio("destroyBrick", "assets/sounds/brickDestroy.mp3");
+  this.load.audio("newLife", "assets/sounds/newLife.mp3");
+  this.load.audio("danger", "assets/sounds/warning.mp3");
+  this.load.audio("buff", "assets/sounds/positveBuff.mp3");
 }
 
 function create() {
@@ -60,6 +67,11 @@ function create() {
   scene.add.image(400, 245, "background");
   scene.scale.setGameSize(800, 490);
 
+  /* Adicionar sons */
+  sound = this.sound.add("destroyBrick");
+  life = this.sound.add("newLife");
+  warning = this.sound.add("danger");
+  pBuff = this.sound.add("buff");
   /* Código paddle */
   paddle = scene.physics.add.sprite(400, 450, "paddle");
   paddle.setScale(0.9);
@@ -163,8 +175,8 @@ function createBricks1() {
 }
 function createBricks2() {
   bonusCount = 0;
-  var rows = 4 * level;
-  var cols = 10 * level;
+  var rows = 5;
+  var cols = 10;
   var matrix = [];
   for (var i = 0; i < rows; i++) {
     var u = [];
@@ -197,8 +209,8 @@ function createBricks2() {
   ball.setVelocityY(500, 500);
 }
 function createBricks3() {
-  var rows = 4 * level;
-  var cols = 10 * level;
+  var rows = 6;
+  var cols = 10;
   var matrix = [];
   for (var i = 0; i < rows; i++) {
     var u = [];
@@ -245,9 +257,10 @@ function ballHitBrick(brick) {
     ball.setVelocity(800, 800);
   }
   brick.destroy();
+  sound.play();
+  sound.volume = 0.005;
   score++;
   scoreText.setText("Score: " + score);
-
   callBonus = Math.random() < 0.2 ? createBonus(brick.x, brick.y) : null;
 }
 
@@ -300,6 +313,8 @@ function positiveBonus() {
   var rand_bonus = Phaser.Math.RND.pick([0, 1]); // escolhe aleatoriamente entre aumentar o tamanho do paddle ou receber vida extra
   if (rand_bonus === 0) {
     paddle.setScale(1.5);
+    pBuff.play();
+    pBuff.volume = 0.008;
     scene.time.delayedCall(
       10000,
       function () {
@@ -312,6 +327,8 @@ function positiveBonus() {
   } else {
     lives++;
     livesText.setText("Lives: " + lives);
+    life.play();
+    life.volume = 0.008;
   }
 }
 
@@ -319,7 +336,8 @@ function negativeBonus() {
   if (!extraBallActive) {
     bonusBadActive = true;
     extraBallActive = true;
-
+    warning.play();
+    warning.volume = 0.008;
     extraBall = scene.physics.add.sprite(500, 150, "ball");
     extraBall.setVelocityY(300);
     extraBall.setVelocityX(Phaser.Math.RND.integerInRange(-200, 200));
@@ -335,6 +353,8 @@ function negativeBonus() {
     }, 5000);
   } else {
     paddle.setScale(0.5); // diminui o tamanho do paddle em 50%
+    warning.play();
+    warning.volume = 0.008;
     scene.time.delayedCall(
       10000,
       function () {
