@@ -25,27 +25,31 @@ var ball;
 var paddle;
 var heart;
 var bonus;
+
 var warning;
 var pBuff;
 var sound;
 var life;
+
 var lives = 3;
 var score = 0;
 var livesText;
 var scoreText;
 var color = ["0xffffff", "0xff0000", "0x00ff00", "0x0000ff"];
 var level = 1;
+
 var bonusCount = 0;
 var bonusGoodActive = false;
 var bonusBadActive = false;
 var extraBallActive = false;
+
 //Blocos que vão ser criados
 var brickInfo = {
-  width: 50 / level, //largura
-  height: 20 / level, //comprimento
-  count: { row: 4 * level, col: 10 * level }, //numero de li  nhas e colunas de blocos
+  width: 50,
+  height: 20,
+  count: { row: 4, col: 10 }, //numero de li  nhas e colunas de blocos
   offset: { top: 90, left: 100 }, //posição inicial entre blocos
-  padding: 10 * level, //espaço entre blocos
+  padding: 10, //espaço entre blocos
 };
 
 //Função para pré carregar recursos do jogo
@@ -206,7 +210,7 @@ function createBricks2() {
       }
     }
   }
-  ball.setVelocityY(500, 500);
+  ball.setVelocity(500, 500);
 }
 function createBricks3() {
   var rows = 6;
@@ -239,6 +243,7 @@ function createBricks3() {
       }
     }
   }
+  ball.setVelocity(700, 700);
 }
 
 //Função para configurar um bloco
@@ -251,10 +256,8 @@ function manage(brick) {
 
 //Função para colisão da bola com o bloco
 function ballHitBrick(brick) {
-  if (brick.fillColor == "0xffffff" && level === 1) {
+  if (brick.fillColor == "0xffffff") {
     ball.setVelocity(450, 450);
-  } else if (brick.fillColor == "0xffffff" && level === 2) {
-    ball.setVelocity(800, 800);
   }
   brick.destroy();
   sound.play();
