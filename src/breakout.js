@@ -185,9 +185,6 @@ function bounceOffPaddle() {
   } else if (level === 2) {
     ball.setVelocityY(-500);
     ball.setVelocityX(Phaser.Math.Between(-550, 550));
-  } else if (level === 3) {
-    ball.setVelocityY(-700);
-    ball.setVelocityX(Phaser.Math.Between(-750, 750));
   }
 }
 
@@ -215,7 +212,7 @@ function createBricks1() {
   for (var i = 0; i < rows; i++) {
     for (var j = 0; j < cols; j++) {
       // Se o valor na matriz for 1 ou 2, cria um bloco
-      if (brickMatrix[i][j] == 1 || brickMatrix[i][j] == 2) {
+      if (brickMatrix[i][j] == 1) {
         var brickX = j * (50 + 7) + brickOffset.left;
         var brickY = i * (20 + 7) + brickOffset.top;
         var brickColor = Phaser.Utils.Array.GetRandom(color);
@@ -256,7 +253,7 @@ function createBricks2() {
   for (var i = 0; i < rows; i++) {
     for (var j = 0; j < cols; j++) {
       // Se o valor na matriz for 1 ou 2, cria um bloco
-      if (brickMatrix[i][j] == 1 || brickMatrix[i][j] == 2) {
+      if (brickMatrix[i][j] == 1) {
         var brickX = j * (50 + 7) + brickOffset.left;
         var brickY = i * (20 + 7) + brickOffset.top;
         var brickColor = Phaser.Utils.Array.GetRandom(color);
