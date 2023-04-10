@@ -43,14 +43,8 @@ var bonusGoodActive = false;
 var bonusBadActive = false;
 var extraBallActive = false;
 
-//Blocos que vão ser criados
-var brickInfo = {
-  width: 50,
-  height: 20,
-  count: { row: 4, col: 10 }, //numero de li  nhas e colunas de blocos
-  offset: { top: 90, left: 100 }, //posição inicial entre blocos
-  padding: 10, //espaço entre blocos
-};
+var bricks_level1 = 47;
+var bricks_level2 = 64;
 
 //Função para pré carregar recursos do jogo
 function preload() {
@@ -78,7 +72,7 @@ function create() {
   pBuff = this.sound.add("buff");
   /* Código paddle */
   paddle = scene.physics.add.sprite(400, 450, "paddle");
-  paddle.setScale(0.9);
+  paddle.setScale(1);
   paddle.body.setSize(150, 40);
   paddle.setCollideWorldBounds(true);
   paddle.body.immovable = true;
@@ -145,105 +139,136 @@ function update() {
     this.input.mouse.disableContextMenu();
     this.input.keyboard.enabled = false;
   }
-  if (score === brickInfo.count.row * brickInfo.count.col) {
+  if (bricks_level1 == 0) {
+    level = 2;
     createBricks2();
-  } else if (level === 3) {
-    createBricks3();
+    console.log(bricks_level2);
+  } else if (level === 2 && score === 210) {
+    var congratulations = this.add.text(
+      game.config.width / 2,
+      game.config.height / 3,
+      "Congratulations!!!\n You finish the game!",
+      { font: "32px Arial", fill: "#FFFFFF" }
+    );
+    congratulations.setOrigin(0.5);
+
+    var restartButton = this.add.text(
+      game.config.width / 2,
+      game.config.height / 3 + 150,
+      "Jogar Novamente!",
+      {
+        font: "24px Arial",
+        fill: "#FFFFFF",
+        stroke: "#FFFFFF",
+        backgroundColor: "#8878C3",
+      }
+    );
+
+    restartButton.setOrigin(0.5);
+
+    restartButton.setInteractive(); // Habilita a interatividade do botão
+    restartButton.on("pointerup", function () {
+      window.location.href = "menu.html";
+    });
+
+    this.physics.pause();
+    this.input.mouse.disableContextMenu();
+    this.input.keyboard.enabled = false;
   }
 }
 
 //Função responsável por fazer a bola saltar no paddle quando colidem
 function bounceOffPaddle() {
-  ball.setVelocityY(-300);
-  ball.setVelocityX(Phaser.Math.Between(-350, 350));
+  if (level === 1) {
+    ball.setVelocityY(-300);
+    ball.setVelocityX(Phaser.Math.Between(-350, 350));
+  } else if (level === 2) {
+    ball.setVelocityY(-500);
+    ball.setVelocityX(Phaser.Math.Between(-550, 550));
+  } else if (level === 3) {
+    ball.setVelocityY(-700);
+    ball.setVelocityX(Phaser.Math.Between(-750, 750));
+  }
 }
 
 //Função para criar os blocos
 function createBricks1() {
+  bonusCount = 0;
+  var brickOffset = {
+    top: 50,
+    left: 115,
+  };
+  var brickMatrix = [
+    [1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1],
+    [1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1],
+    [1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1],
+    [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1],
+    [1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1],
+    [1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1],
+    [1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1],
+  ];
+
+  var rows = brickMatrix.length;
+  var cols = brickMatrix[0].length;
+
   // Loop através da matriz de padrão de blocos
-  for (var i = 0; i < brickInfo.count.col; i++) {
-    for (var j = 0; j < brickInfo.count.row; j++) {
-      // Se o valor na matriz for 1, cria um bloco
-      var brickX =
-        i * (brickInfo.width + brickInfo.padding) + brickInfo.offset.left;
-      var brickY =
-        j * (brickInfo.height + brickInfo.padding) + brickInfo.offset.top;
-      var brickColor = Phaser.Utils.Array.GetRandom(color);
-      manage(
-        scene.physics.add.existing(
+  for (var i = 0; i < rows; i++) {
+    for (var j = 0; j < cols; j++) {
+      // Se o valor na matriz for 1 ou 2, cria um bloco
+      if (brickMatrix[i][j] == 1 || brickMatrix[i][j] == 2) {
+        var brickX = j * (50 + 7) + brickOffset.left;
+        var brickY = i * (20 + 7) + brickOffset.top;
+        var brickColor = Phaser.Utils.Array.GetRandom(color);
+
+        var brick = scene.physics.add.existing(
           scene.add.rectangle(brickX, brickY, 50, 20, brickColor)
-        )
-      );
+        );
+        manage(brick);
+      }
     }
   }
 }
 function createBricks2() {
   bonusCount = 0;
-  var rows = 5;
-  var cols = 10;
-  var matrix = [];
-  for (var i = 0; i < rows; i++) {
-    var u = [];
-    for (var j = 0; j < cols; j++) {
-      u.push(Phaser.Math.Between(0, 1));
-    }
-    matrix.push(u);
-  }
+  var brickOffset = {
+    top: 50,
+    left: 115,
+  };
+  var brickMatrix = [
+    [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+    [0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+    [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+    [1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1],
+    [1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1],
+    [1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1],
+    [1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1],
+    [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+    [0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+    [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+  ];
 
-  console.log(matrix);
+  var rows = brickMatrix.length;
+  var cols = brickMatrix[0].length;
 
   // Loop através da matriz de padrão de blocos
-  for (var i = 0; i < matrix.length; i++) {
-    for (var j = 0; j < matrix[i].length; j++) {
-      // Se o valor na matriz for 1, cria um bloco
-      if (matrix[i][j] == 1) {
-        var brickX =
-          j * (brickInfo.width + brickInfo.padding) + brickInfo.offset.left;
-        var brickY =
-          i * (brickInfo.height + brickInfo.padding) + brickInfo.offset.top;
+  for (var i = 0; i < rows; i++) {
+    for (var j = 0; j < cols; j++) {
+      // Se o valor na matriz for 1 ou 2, cria um bloco
+      if (brickMatrix[i][j] == 1 || brickMatrix[i][j] == 2) {
+        var brickX = j * (50 + 7) + brickOffset.left;
+        var brickY = i * (20 + 7) + brickOffset.top;
         var brickColor = Phaser.Utils.Array.GetRandom(color);
-        manage(
-          scene.physics.add.existing(
-            scene.add.rectangle(brickX, brickY, 50, 20, brickColor)
-          )
+
+        var brick = scene.physics.add.existing(
+          scene.add.rectangle(brickX, brickY, 50, 20, brickColor)
         );
+        manage(brick);
       }
     }
   }
   ball.setVelocity(500, 500);
-}
-function createBricks3() {
-  var rows = 6;
-  var cols = 10;
-  var matrix = [];
-  for (var i = 0; i < rows; i++) {
-    var u = [];
-    for (var j = 0; j < cols; j++) {
-      u.push(Phaser.Math.Between(0, 1));
-    }
-    matrix.push(u);
-  }
-
-  console.log(matrix);
-  // Loop através da matriz de padrão de blocos
-  for (var i = 0; i < matrix.length; i++) {
-    for (var j = 0; j < matrix[i].length; j++) {
-      // Se o valor na matriz for 1, cria um bloco
-      if (matrix[i][j] == 1) {
-        var brickX =
-          j * (brickInfo.width + brickInfo.padding) + brickInfo.offset.left;
-        var brickY =
-          i * (brickInfo.height + brickInfo.padding) + brickInfo.offset.top;
-        var brickColor = Phaser.Utils.Array.GetRandom(color);
-        manage(
-          scene.physics.add.existing(
-            scene.add.rectangle(brickX, brickY, 50, 20, brickColor)
-          )
-        );
-      }
-    }
-  }
-  ball.setVelocity(700, 700);
 }
 
 //Função para configurar um bloco
@@ -260,11 +285,21 @@ function ballHitBrick(brick) {
     ball.setVelocity(450, 450);
   }
   brick.destroy();
+  bricks_level1--;
+  bricks_level2--;
   sound.play();
   sound.volume = 0.005;
   score++;
   scoreText.setText("Score: " + score);
   callBonus = Math.random() < 0.2 ? createBonus(brick.x, brick.y) : null;
+
+  if (level === 2) {
+    ball.setVelocity(450, 450);
+  } else if (level === 2 && brick.fillColor == "0xffffff") {
+    ball.setVelocity(550, 550);
+  } else if (level === 3 && brick.fillColor == "0xffffff") {
+    ball.setVelocity(650, 650);
+  }
 }
 
 function informations() {
@@ -394,7 +429,8 @@ function godMode() {
 
   // Adicione um listener para a tecla "B"
   this.input.keyboard.on("keydown-Z", function () {
-    createBricks3();
+    level = 2;
+    createBricks2();
   });
 }
 
