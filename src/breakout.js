@@ -132,7 +132,7 @@ function update() {
 
     restartButton.setInteractive(); // Habilita a interatividade do botão
     restartButton.on("pointerup", function () {
-      window.location.href = "menu.html";
+      window.location.href = "index.html";
     });
 
     this.physics.pause();
@@ -168,7 +168,7 @@ function update() {
 
     restartButton.setInteractive(); // Habilita a interatividade do botão
     restartButton.on("pointerup", function () {
-      window.location.href = "menu.html";
+      window.location.href = "index.html";
     });
 
     this.physics.pause();
